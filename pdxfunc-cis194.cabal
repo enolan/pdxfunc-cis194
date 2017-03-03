@@ -1,0 +1,29 @@
+name:                pdxfunc-cis194
+version:             0.1.0.0
+homepage:            https://github.com/enolan/pdxfunc-cis194#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Echo Nolan
+maintainer:          echo@echonolan.net
+copyright:           2017 Echo Nolan
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Week1
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
+
+test-suite tasty
+  hs-source-dirs:      test
+  main-is:             Main.hs
+  build-depends:       base, pdxfunc-cis194, tasty, tasty-hunit
+  type:                exitcode-stdio-1.0
+  ghc-options:         -Wall -fdefer-typed-holes
+
+source-repository head
+  type:     git
+  location: https://github.com/enolan/pdxfunc-cis194
