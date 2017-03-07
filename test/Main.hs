@@ -54,20 +54,20 @@ hanoiTests :: TestTree
 hanoiTests = testGroup "Towers of Hanoi"
   [testProperty "3 pegs (QuickCheck)" $ \n src tgt tmp ->
       let pegs = [src, tgt, tmp] in
-      n < 5 && uniqueList pegs ==>
+      n < 2 && uniqueList pegs ==>
       validateHanoi n pegs $ hanoi n src tgt tmp
   ]
 
 validateHanoi :: Integer -> [Peg] -> [Move] -> Bool
 validateHanoi _ [] _ = error "validateHanoi called with zero pegs"
 validateHanoi _ [_] _ = error "validateHanoi called with only one peg"
-validateHanoi 0 _ _ = True
+validateHanoi 0 _ moves = moves == []
 validateHanoi n (srcPeg : tgtPeg : otherPegs) moves =
-  go moves $ M.fromList $ (srcPeg, [0 .. n - 1]) : map (, []) otherPegs
+  go moves $ M.fromList $ (srcPeg, [n - 1 .. 0]) : map (, []) (tgtPeg : otherPegs)
   where
   go :: [Move] -> M.Map Peg [Integer] -> Bool
   go [] pegState = pegState == M.fromList
-    ([(srcPeg, []), (tgtPeg, [0 .. n - 1])] ++ map (, []) otherPegs)
+    ([(srcPeg, []), (tgtPeg, [n - 1 .. 0])] ++ map (, []) otherPegs)
   go ((moveSrc, moveDest) : movesRest) pegState =
     case (M.lookup moveSrc pegState, M.lookup moveDest pegState) of
       (Just (srcTop : srcRest), Just destDisks) ->
