@@ -20,7 +20,12 @@ library
 test-suite tasty
   hs-source-dirs:      test
   main-is:             Main.hs
-  build-depends:       base, pdxfunc-cis194, tasty, tasty-hunit
+  build-depends:       base,
+                       containers,
+                       pdxfunc-cis194,
+                       tasty,
+                       tasty-hunit,
+                       tasty-quickcheck
   type:                exitcode-stdio-1.0
   ghc-options:         -Wall -fdefer-typed-holes
 
