@@ -1,5 +1,9 @@
 module Week1
     ( validateCC
+    , hanoi
+    , hanoi2
+    , Move
+    , Peg
     ) where
 
 -- Validate credit card numbers
