@@ -1,5 +1,5 @@
 {-# LANGUAGE TupleSections #-}
-module Main where
+module Main(main) where
 
 import Week1
 
@@ -53,21 +53,37 @@ invalidCCs = [1817288007626273,
 hanoiTests :: TestTree
 hanoiTests = testGroup "Towers of Hanoi"
   [testProperty "3 pegs (QuickCheck)" $ \n src tgt tmp ->
-      n < 5 && uniqueList [src, tgt, tmp] ==>
-      hanoi n src tgt tmp == []
+      let pegs = [src, tgt, tmp] in
+      n < 5 && uniqueList pegs ==>
+      validateHanoi n pegs $ hanoi n src tgt tmp
   ]
 
 validateHanoi :: Integer -> [Peg] -> [Move] -> Bool
-validateHanoi _ []                   _     =
-  error "validateHanoi called with zero pegs"
-validateHanoi n (srcPeg : otherPegs) moves =
+validateHanoi _ [] _ = error "validateHanoi called with zero pegs"
+validateHanoi _ [_] _ = error "validateHanoi called with only one peg"
+validateHanoi 0 _ _ = True
+validateHanoi n (srcPeg : tgtPeg : otherPegs) moves =
   go moves $ M.fromList $ (srcPeg, [0 .. n - 1]) : map (, []) otherPegs
   where
-  go [] _pegState = True
-  go ((moveSrc, moveDest) : moves) pegState = _
+  go :: [Move] -> M.Map Peg [Integer] -> Bool
+  go [] pegState = pegState == M.fromList
+    ([(srcPeg, []), (tgtPeg, [0 .. n - 1])] ++ map (, []) otherPegs)
+  go ((moveSrc, moveDest) : movesRest) pegState =
+    case (M.lookup moveSrc pegState, M.lookup moveDest pegState) of
+      (Just (srcTop : srcRest), Just destDisks) ->
+        if smallerThanTop srcTop destDisks
+        then let newState = M.insert moveDest (srcTop : destDisks) $
+                   M.insert moveSrc srcRest pegState in
+          go movesRest newState
+        else False
+      _                               -> False
 
 uniqueList :: (Eq a, Ord a) => [a] -> Bool
 uniqueList xs = go xs S.empty
   where
   go []       _   = True
   go (y : ys) set = not (S.member y set) && go ys (S.insert y set)
+
+smallerThanTop :: Integer -> [Integer] -> Bool
+smallerThanTop _ []        = True
+smallerThanTop n (x : _xs) = n < x
