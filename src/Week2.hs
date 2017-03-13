@@ -30,5 +30,5 @@ build _ = Leaf -- YOUR CODE GOES HERE
 inOrder :: MessageTree -> [LogMessage]
 inOrder _ = [] -- YOUR CODE GOES HERE
 
-whatWentWrong :: String -> [String]
+whatWentWrong :: [LogMessage] -> [String]
 whatWentWrong _ = [] -- YOUR CODE GOES HERE
