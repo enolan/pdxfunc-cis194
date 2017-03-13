@@ -226,7 +226,7 @@ myWhatWentWrong msgs =
 testSampleDotLog :: TestTree
 testSampleDotLog = testCase "sample.log (from the course website)" $ do
   sampleDotLog <- getDataFileName "sample.log" >>= readFile
-  assertEqual "" (parse sampleDotLog) sampleDotLogCorrect
+  assertEqual "" sampleDotLogCorrect (parse sampleDotLog)
 
 sampleDotLogCorrect :: [LogMessage]
 sampleDotLogCorrect =
