@@ -1,8 +1,13 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TupleSections #-}
 module Main(main) where
 
 import Week1
+import Week2
 
+import Data.Char
+import Data.Function
+import Data.List (foldl', sortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Test.Tasty
@@ -10,7 +15,10 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
 main :: IO ()
-main = defaultMain $ testGroup "tests" [luhns, hanoiTests]
+main = defaultMain $ testGroup "tests" [week1Tests, week2Tests]
+
+week1Tests :: TestTree
+week1Tests = testGroup "Week 1" [luhns, hanoiTests]
 
 luhns :: TestTree
 luhns = testGroup "Credit card number validation"
@@ -91,3 +99,121 @@ uniqueList xs = go xs S.empty
 smallerThanTop :: Integer -> [Integer] -> Bool
 smallerThanTop _ []        = True
 smallerThanTop n (x : _xs) = n < x
+
+-- Here be spoilers!
+week2Tests :: TestTree
+week2Tests = testGroup "Week 2"
+  [testParseMessage,
+   testParse,
+   testInsert,
+   testBuild,
+   testInOrder,
+   testWhatWentWrong]
+
+instance Arbitrary MessageType where
+  arbitrary = oneof [return Info, return Warning, Error <$> arbitrary]
+
+instance Arbitrary LogMessage where
+  arbitrary = frequency
+    [(5, LogMessage <$>
+     oneof [return Info, return Warning, Error <$> arbitrary] <*>
+     arbitrary <*> (arbitrary `suchThat` okayString)),
+     (1, Unknown <$> (arbitrary `suchThat` okayString))]
+
+-- This removes a lot of edge case tests. A real parser would have to handle
+-- them, but for the purposes of the exercise let's not worry about them.
+okayString :: String -> Bool
+okayString [] = True
+okayString str@(c : _) =
+  all (\ch -> ch /= '\n' && isPrint ch && (ch == ' ' || not (isSpace ch))) str &&
+  noSpaceRuns str &&
+  not (isSpace c) &&
+  not (isSpace $ last str)
+  where
+  noSpaceRuns [] = True
+  noSpaceRuns [_] = True
+  noSpaceRuns (c1 : rest@(c2 : _)) = not (isSpace c1 && isSpace c2) &&
+    noSpaceRuns rest
+
+instance Arbitrary MessageTree where
+  arbitrary = myBuild <$> listOf arbitrary
+
+myBuild :: [LogMessage] -> MessageTree
+myBuild = foldl' myInsert Leaf
+
+myInsert :: MessageTree -> LogMessage -> MessageTree
+myInsert Leaf (Unknown _)             = Leaf
+myInsert Leaf msg@(LogMessage _ _ _) = Node Leaf msg Leaf
+myInsert (Node lTree msg1@(LogMessage _ ts1 _) rTree) msg2@(LogMessage _ ts2 _) =
+  if ts1 <= ts2
+  then Node lTree msg1 (myInsert rTree msg2)
+  else Node (myInsert lTree msg2) msg1 rTree
+myInsert (Node _ (Unknown _) _) _ = error "myInsert: tree with Unknown in it"
+myInsert tree@(Node _ _ _) (Unknown _) = tree
+
+myInOrder :: MessageTree -> [LogMessage]
+myInOrder Leaf = []
+myInOrder (Node lTree msg rTree) = myInOrder lTree ++ [msg] ++ myInOrder rTree
+
+formatMessageType :: MessageType -> String
+formatMessageType Info = "I"
+formatMessageType Warning = "W"
+formatMessageType (Error severity) = "E " ++ show severity
+
+formatMessage :: LogMessage -> String
+formatMessage (LogMessage ty tm msg) =
+  formatMessageType ty ++ " " ++ show tm ++ " " ++ msg
+formatMessage (Unknown msg) = msg
+
+testParseMessage :: TestTree
+testParseMessage =
+  testProperty "parseMessage" $ \msg -> parseMessage (formatMessage msg) == msg
+
+testParse :: TestTree
+testParse = testProperty "parse" $
+  \msgs -> parse (unlines $ map formatMessage msgs) == msgs
+
+testInsert :: TestTree
+testInsert = testProperty "insert" $ \tree newMsg ->
+  let newTree = insert newMsg tree in
+  (myInOrder newTree) == myInOrder (myInsert tree newMsg) &&
+  validTree newTree
+
+validTree :: MessageTree -> Bool
+validTree Leaf = True
+validTree (Node _ (Unknown _) _) = False
+validTree (Node lTree (LogMessage _ ts _) rTree) =
+  validLTree lTree ts && validRTree rTree ts
+
+validLTree :: MessageTree -> TimeStamp -> Bool
+validLTree Leaf _ = True
+validLTree (Node _ (Unknown _) _) _ = False
+validLTree (Node lTree (LogMessage _ ts _) rTree) tsGt =
+  ts <= tsGt && validLTree lTree ts && validRTree rTree ts
+
+validRTree :: MessageTree -> TimeStamp -> Bool
+validRTree Leaf _ = True
+validRTree (Node _ (Unknown _) _) _ = False
+validRTree (Node lTree (LogMessage _ ts _) rTree) tsLt =
+  ts >= tsLt && validLTree lTree ts && validRTree rTree ts
+
+testBuild :: TestTree
+testBuild = testProperty "build" $
+  \msgs -> myInOrder (myBuild msgs) == myInOrder (build msgs)
+
+testInOrder :: TestTree
+testInOrder = testProperty "inOrder" $
+  \tree -> myInOrder tree == inOrder tree
+
+testWhatWentWrong :: TestTree
+testWhatWentWrong = testProperty "whatWentWrong" $
+  \msgs -> whatWentWrong msgs == myWhatWentWrong msgs
+
+myWhatWentWrong :: [LogMessage] -> [String]
+myWhatWentWrong msgs =
+  let relevant (LogMessage (Error n) _ _) = n >= 50
+      relevant _ = False
+      relevantMsgs = filter relevant msgs
+      getMsgStr (LogMessage _ _ str) = str
+      getMsgStr (Unknown _) = error "getMsgStr Unknown" in
+    map getMsgStr $ sortBy (compare `on` (\(LogMessage _ ts _) -> ts)) relevantMsgs
