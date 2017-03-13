@@ -2,6 +2,8 @@
 {-# LANGUAGE TupleSections #-}
 module Main(main) where
 
+import Paths_pdxfunc_cis194
+
 import Week1
 import Week2
 
@@ -103,12 +105,15 @@ smallerThanTop n (x : _xs) = n < x
 -- Here be spoilers!
 week2Tests :: TestTree
 week2Tests = testGroup "Week 2"
-  [testParseMessage,
-   testParse,
-   testInsert,
-   testBuild,
-   testInOrder,
-   testWhatWentWrong]
+  [testGroup "QuickCheck"
+   [testParseMessage,
+    testParse,
+    testInsert,
+    testBuild,
+    testInOrder,
+    testWhatWentWrong],
+   testGroup "HUnit"
+   [testSampleDotLog]]
 
 instance Arbitrary MessageType where
   arbitrary = oneof [return Info, return Warning, Error <$> arbitrary]
@@ -217,3 +222,22 @@ myWhatWentWrong msgs =
       getMsgStr (LogMessage _ _ str) = str
       getMsgStr (Unknown _) = error "getMsgStr Unknown" in
     map getMsgStr $ sortBy (compare `on` (\(LogMessage _ ts _) -> ts)) relevantMsgs
+
+testSampleDotLog :: TestTree
+testSampleDotLog = testCase "sample.log (from the course website)" $ do
+  sampleDotLog <- getDataFileName "sample.log" >>= readFile
+  assertEqual "" (parse sampleDotLog) sampleDotLogCorrect
+
+sampleDotLogCorrect :: [LogMessage]
+sampleDotLogCorrect =
+  [LogMessage Info 6 "Completed armadillo processing",
+   LogMessage Info 1 "Nothing to report",
+   LogMessage Info 4 "Everything normal",
+   LogMessage Info 11 "Initiating self-destruct sequence",
+   LogMessage (Error 70) 3 "Way too many pickles",
+   LogMessage (Error 65) 8 "Bad pickle-flange interaction detected",
+   LogMessage Warning 5 "Flange is due for a check-up",
+   LogMessage Info 7 "Out for lunch, back in two time steps",
+   LogMessage (Error 20) 2 "Too many pickles",
+   LogMessage Info 9 "Back from lunch",
+   LogMessage (Error 99) 10 "Flange failed!"]
