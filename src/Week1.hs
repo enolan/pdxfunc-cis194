@@ -16,14 +16,14 @@ toDigitsRev x
 
 -- Double every other integer in a list
 doubleEveryOther :: [Integer] -> [Integer]
-doubleEveryOther ds = reverse (doubleEveryOther' False (reverse ds))
+doubleEveryOther ds = reverse (doubleEveryOther' (reverse ds))
 
--- Inner function for doubling every other number in a list. The boolean flag is
--- whether or not to double the next number.
-doubleEveryOther' :: Bool -> [Integer] -> [Integer]
-doubleEveryOther' _     []       = []
-doubleEveryOther' True  (x : xs) = 2 * x : doubleEveryOther' False xs
-doubleEveryOther' False (x : xs) = x     : doubleEveryOther' True xs
+-- Inner function for doubling every other number in a list,
+-- starting with the second item in the list.
+doubleEveryOther' :: [Integer] -> [Integer]
+doubleEveryOther' [] = []
+doubleEveryOther' [n] = [n]
+doubleEveryOther' (n : m : t) = n : 2*m : doubleEveryOther' t
 
 validateCC :: Integer -> Bool
 validateCC n = let
