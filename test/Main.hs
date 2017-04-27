@@ -273,4 +273,35 @@ localMaximaTests = testGroup "localMaxima"
 
 histogramTests :: TestTree
 histogramTests = testGroup "histogram"
-  [] -- Fix this later
+  [histTestA, histTestB, histTestC]
+
+histTestA :: TestTree
+histTestA = mkTest histogram ([0..9] ++ [0..9] ++ replicate 5 2) histogramA
+
+histogramA :: [Char]
+histogramA = "\
+             \  *       \n\
+             \  *       \n\
+             \  *       \n\
+             \  *       \n\
+             \  *       \n\
+             \**********\n\
+             \**********\n\
+             \==========\n\
+             \0123456789"
+
+histTestB :: TestTree
+histTestB = mkTest histogram ([0] ++ replicate 5 2 ++ [1,3,1,1,9]) histogramB
+
+histogramB :: [Char]
+histogramB = "\
+             \  *       \n\
+             \  *       \n\
+             \ **       \n\
+             \ **       \n\
+             \****     *\n\
+             \==========\n\
+             \0123456789"
+
+histTestC :: TestTree
+histTestC = mkTest histogram [] "==========\n0123456789"
