@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 module Week3(skips, localMaxima, histogram) where
 
 import Data.List
