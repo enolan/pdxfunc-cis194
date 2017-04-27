@@ -1,19 +1,16 @@
 {-# LANGUAGE TupleSections #-}
 module Week3(skips, localMaxima, histogram) where
 
-import Debug.Trace
-
 import Data.List
 import qualified Data.Map as M
-import Data.Maybe
 import qualified Data.Set as S
 
 skips :: [a] -> [[a]]
 skips [] = []
-skips xs = map (flip skipN xs) [0 .. length xs - 1]
+skips xs = map (`skipN` xs) [0 .. length xs - 1]
 
 skipN :: Int -> [a] -> [a]
-skipN n xs = go 0 xs
+skipN n = go 0
   where
   go _ []                   = []
   go m (y : ys) | m >= n    = y : go 0 ys
@@ -42,7 +39,7 @@ flipMap :: (Ord k1, Ord k2) => M.Map k1 k2 -> M.Map k2 (S.Set k1)
 flipMap = M.foldlWithKey
   (\m k v ->
      M.alter
-     (maybe (Just $ S.singleton k) (Just . S.insert k))
+     (Just . maybe (S.singleton k) (S.insert k))
      v
      m)
   M.empty
