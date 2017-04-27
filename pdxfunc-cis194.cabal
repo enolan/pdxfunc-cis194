@@ -16,7 +16,7 @@ data-dir:            data
 library
   hs-source-dirs:      src
   exposed-modules:     Week1, Week2, Week3
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base >= 4.7 && < 5, containers >= 0.5
   default-language:    Haskell2010
 
 test-suite tasty
