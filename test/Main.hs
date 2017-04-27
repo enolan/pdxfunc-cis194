@@ -6,6 +6,7 @@ import Paths_pdxfunc_cis194
 
 import Week1
 import Week2
+import Week3
 
 import Data.Char
 import Data.Function
@@ -17,7 +18,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
 main :: IO ()
-main = defaultMain $ testGroup "tests" [week1Tests, week2Tests]
+main = defaultMain $ testGroup "tests" [week1Tests, week2Tests, week3Tests]
 
 week1Tests :: TestTree
 week1Tests = testGroup "Week 1" [luhns, hanoiTests]
@@ -241,3 +242,35 @@ sampleDotLogCorrect =
    LogMessage (Error 20) 2 "Too many pickles",
    LogMessage Info 9 "Back from lunch",
    LogMessage (Error 99) 10 "Flange failed!"]
+
+week3Tests :: TestTree
+week3Tests = testGroup "Week 3" [skipsTests, localMaximaTests, histogramTests]
+
+skipsTests :: TestTree
+skipsTests = testGroup "skips"
+  [mkTestStr skips "ABCD" ["ABCD", "BD", "C", "D"],
+   mkTestStr skips "hello!" ["hello!", "el!", "l!", "l", "o", "!"],
+   mkTest skips ([1] :: [Int]) [[1]],
+   mkTest skips [True, False] [[True, False], [False]],
+   mkTest skips ([] :: [Bool]) []]
+
+mkTestStr :: (Show a, Eq a) => (String -> a) -> String -> a -> TestTree
+mkTestStr f input expected = testCase input $
+  assertEqual eqTestDesc (f input) expected
+
+mkTest :: (Show a, Show t, Eq a) => (t -> a) -> t -> a -> TestTree
+mkTest f input expected = testCase (show input) $
+  assertEqual eqTestDesc (f input) expected
+
+eqTestDesc :: [Char]
+eqTestDesc = "output should equal expected from homework PDF"
+
+localMaximaTests :: TestTree
+localMaximaTests = testGroup "localMaxima"
+  [mkTest localMaxima [2,9,5,6,1] [9, 6],
+   mkTest localMaxima [2,3,4,1,5] [4],
+   mkTest localMaxima [1,2,3,4,5] []]
+
+histogramTests :: TestTree
+histogramTests = testGroup "histogram"
+  [] -- Fix this later
