@@ -1,4 +1,4 @@
-module Week3 where
+module Week3(skips, localMaxima, histogram) where
 
 skips :: [a] -> [[a]]
 skips xs = [] -- YOUR CODE GOES HERE
