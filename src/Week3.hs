@@ -24,14 +24,23 @@ localMaxima (x1 : xs1@(x2 : x3 : _)) =
 localMaxima _ = []
 
 histogram :: [Integer] -> String
-histogram = chart . foldl (\m i -> M.insertWith (+) i 1 m) (M.fromList $ map (,0) [0..9])
+histogram = chart . foldl (\m i -> M.insertWith (+) i 1 m) M.empty
   where
   chart :: M.Map Integer Integer -> String
   chart m = if M.null m then axis else
     let flipped = flipMap m
         height = fst $ M.findMax flipped
-        lines = map (\line -> map (\n -> maybe ' ' (\s -> if S.member n s then '*' else ' ') (M.lookup line flipped)) [0..9]) $ reverse [1..9] in
-      (concat (intersperse "\n" lines))
+        rows = map
+          (\rowNum -> map
+            (\n -> maybe
+              ' '
+              (\i -> if i >= rowNum then '*' else ' ')
+              (M.lookup n m))
+            [0..9]
+          )
+          (reverse [1..height])
+    in
+      intercalate "\n" rows
       ++ "\n" ++ axis
   axis = replicate 10 '=' ++ "\n" ++ ['0'..'9']
 
