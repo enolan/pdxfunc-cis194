@@ -256,11 +256,11 @@ skipsTests = testGroup "skips"
 
 mkTestStr :: (Show a, Eq a) => (String -> a) -> String -> a -> TestTree
 mkTestStr f input expected = testCase input $
-  assertEqual eqTestDesc (f input) expected
+  assertEqual eqTestDesc expected (f input)
 
 mkTest :: (Show a, Show t, Eq a) => (t -> a) -> t -> a -> TestTree
 mkTest f input expected = testCase (show input) $
-  assertEqual eqTestDesc (f input) expected
+  assertEqual eqTestDesc expected (f input)
 
 eqTestDesc :: [Char]
 eqTestDesc = "output should equal expected from homework PDF"
