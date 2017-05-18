@@ -41,7 +41,7 @@ histogram = chart . foldl (\m i -> M.insertWith (+) i 1 m) M.empty
     in
       intercalate "\n" rows
       ++ "\n" ++ axis
-  axis = replicate 10 '=' ++ "\n" ++ ['0'..'9']
+  axis = replicate 10 '=' ++ "\n" ++ ['0'..'9'] ++ "\n"
 
 flipMap :: (Ord k1, Ord k2) => M.Map k1 k2 -> M.Map k2 (S.Set k1)
 flipMap = M.foldlWithKey
